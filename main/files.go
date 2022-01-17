@@ -4,16 +4,21 @@ import (
 	"os"
 )
 
-//TODO return a list of structs with the following:
-// full file path (for read access)
-// cleaned file name (as would be present on a target git repo)
-// git hash?
+//TODO return a list of LocalFile
+// include git hashes?
 
-func TraverseFilePath(path string) {
+type LocalFile struct {
+	fullPath string
+	fileName string // TODO should probably be normalized by folder and not just be the pure fileName
+}
+
+func TraverseFilePath(path string) []LocalFile {
 	Debug("Found files:")
 
-	directory := readDirectory(path)
-	traverseDirectory(directory, path)
+	rootDirectory := readDirectory(path)
+	resultSlice := make([]LocalFile, 0)
+	traverseDirectory(rootDirectory, path, &resultSlice)
+	return resultSlice
 }
 
 func readDirectory(path string) []os.DirEntry {
@@ -24,21 +29,31 @@ func readDirectory(path string) []os.DirEntry {
 	return directory
 }
 
-func traverseDirectory(directory []os.DirEntry, path string) {
+func traverseDirectory(directory []os.DirEntry, path string, slice *[]LocalFile) {
 	for _, directoryEntry := range directory {
 		isDirectory := directoryEntry.IsDir()
 
+		nextFileFullPath := sanitizePath(path) + directoryEntry.Name()
+
 		if isDirectory {
-			directoryContents := readDirectory(sanitizePath(path) + directoryEntry.Name())
-			traverseDirectory(directoryContents, sanitizePath(path)+directoryEntry.Name())
+			directoryContents := readDirectory(nextFileFullPath)
+			traverseDirectory(directoryContents, nextFileFullPath, slice)
 		} else {
-			checkReadRightsForFile(sanitizePath(path) + directoryEntry.Name())
+			checkReadRightsForFile(nextFileFullPath)
+			*slice = append(*slice, LocalFile{
+				fullPath: nextFileFullPath,
+				fileName: directoryEntry.Name(),
+			})
 		}
 	}
 
 }
 
 func sanitizePath(path string) string {
+	if path == "" {
+		return path + "/"
+	}
+
 	if rune(path[len(path)-1]) != '/' {
 		return path + "/"
 	}
@@ -46,8 +61,11 @@ func sanitizePath(path string) string {
 }
 
 func checkReadRightsForFile(path string) {
-	_, err := os.Open(path)
-
+	file, err := os.Open(path)
 	CheckErrorWithLog("Error while attempting to open file contents for reading: ", err)
+
+	err = file.Close()
+	CheckError(err)
+
 	Debug(path)
 }

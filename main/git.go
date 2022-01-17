@@ -5,7 +5,7 @@ import (
 )
 
 func CheckGitRepo(string) {
-
+	//TODO check whether local or remote git repo
 }
 
 func CloneGitRepo(url string) {
