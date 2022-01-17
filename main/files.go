@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 )
 
@@ -11,7 +10,7 @@ import (
 // git hash?
 
 func TraverseFilePath(path string) {
-	fmt.Println("Found files:")
+	Debug("Found files:")
 
 	directory := readDirectory(path)
 	traverseDirectory(directory, path)
@@ -21,7 +20,7 @@ func readDirectory(path string) []os.DirEntry {
 	directory, err := os.ReadDir(path)
 
 	if err != nil {
-		fmt.Print("Error while reading directory contents: ", err)
+		Error("Error while reading directory contents: ", err)
 		os.Exit(1)
 	}
 
@@ -53,9 +52,9 @@ func checkReadRightsForFile(path string) {
 	_, err := os.Open(path)
 
 	if err != nil {
-		fmt.Print("Error while attempting to open file contents for reading: ", err)
+		Error("Error while attempting to open file contents for reading: ", err)
 		os.Exit(1)
 	}
 
-	fmt.Println(path)
+	Debug(path)
 }
