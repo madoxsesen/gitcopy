@@ -19,10 +19,7 @@ func TraverseFilePath(path string) {
 func readDirectory(path string) []os.DirEntry {
 	directory, err := os.ReadDir(path)
 
-	if err != nil {
-		Error("Error while reading directory contents: ", err)
-		os.Exit(1)
-	}
+	CheckErrorWithLog("Error while reading directory contents", err)
 
 	return directory
 }
@@ -51,10 +48,6 @@ func sanitizePath(path string) string {
 func checkReadRightsForFile(path string) {
 	_, err := os.Open(path)
 
-	if err != nil {
-		Error("Error while attempting to open file contents for reading: ", err)
-		os.Exit(1)
-	}
-
+	CheckErrorWithLog("Error while attempting to open file contents for reading: ", err)
 	Debug(path)
 }
